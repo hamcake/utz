@@ -76,9 +76,19 @@ typedef struct udatetime_t {
 
 /** @brief timezone offset type */
 typedef struct uoffset_t {
-  uint8_t minutes; // 0 to 59
+  uint8_t minutes; // 0 to 59, magnitude only: the sign of the offset is the sign of hours
   int8_t hours; // -12 to +12
 } uoffset_t;
+
+/** @brief total signed minutes of an offset (e.g. -3:30 -> -210)
+ *  @details minutes holds a magnitude and takes its sign from hours, so
+ *  hours * 60 + minutes is wrong for negative offsets with minutes (St. John's).
+ *  Note: an offset between -1:00 and 0:00 cannot be represented; no zone uses one.
+ */
+static inline int16_t uoffset_total_minutes(const uoffset_t* offset) {
+  return offset->hours < 0 ? (int16_t)(offset->hours * 60 - offset->minutes)
+                           : (int16_t)(offset->hours * 60 + offset->minutes);
+}
 
 /** @struct uzone_packed_t
  *  @brief packed timezone type
