@@ -242,12 +242,8 @@ void unpack_zone(const uzone_packed_t* zone_in, const char* name, uzone_t* zone_
   zone_out->src = zone_in;
   zone_out->name = name;
 
-  // Split the signed total into hours plus a minutes magnitude (see uoffset_t).
-  // The old code took minutes from a negative remainder, which wrapped in the
-  // uint8_t field (St. John's -3:30 came out as -2 h + 226 min).
-  int16_t total_minutes = (int16_t)zone_in->offset_inc_minutes * OFFSET_INCREMENT;
-  zone_out->offset.hours = (int8_t)(total_minutes / 60);
-  zone_out->offset.minutes = (uint8_t)(total_minutes < 0 ? -(total_minutes % 60) : total_minutes % 60);
+  zone_out->offset.minutes = (zone_in->offset_inc_minutes % (60 / OFFSET_INCREMENT)) * OFFSET_INCREMENT;
+  zone_out->offset.hours = zone_in->offset_inc_minutes / (60 / OFFSET_INCREMENT);
   zone_out->rules = &(zone_rules[zone_in->rules_idx]);
   zone_out->rules_len = zone_in->rules_len;
 

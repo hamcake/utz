@@ -21,7 +21,7 @@ static int offset_minutes(const uzone_packed_t* packed, uint8_t month) {
   };
   unpack_zone(packed, "", &zone);
   get_current_offset(&zone, &dt, &offset);
-  return uoffset_total_minutes(&offset);
+  return offset.hours * 60 + offset.minutes;
 }
 
 /* Writes minutes as an offset like "-3:30". */
@@ -44,13 +44,13 @@ int main(void) {
   check("St. John's, July",    offset_minutes(&zone_defns[UTZ_ST_JOHNS], 7), -150);
 
   /* unpack_zone itself, on a made-up UTC-9:30 zone with no DST rules.
-     It should store -9 hours and 30 minutes, which add up to -9:30. */
+     It should store -9 hours and -30 minutes, which add up to -9:30. */
   uzone_packed_t minus_930 = { .offset_inc_minutes = -38, .rules_idx = 0, .rules_len = 0, .abrev_formatter = 0 };
   uzone_t zone;
   unpack_zone(&minus_930, "", &zone);
   assert(zone.offset.hours == -9);
-  assert(zone.offset.minutes == 30);
-  check("Made-up -9:30 zone", uoffset_total_minutes(&zone.offset), -570);
+  assert(zone.offset.minutes == -30);
+  check("Made-up -9:30 zone", zone.offset.hours * 60 + zone.offset.minutes, -570);
 
   /* A few ordinary zones, to show nothing else changed. */
   check("UTC",                 offset_minutes(&zone_defns[UTZ_UTC], 1), 0);
